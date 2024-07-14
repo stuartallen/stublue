@@ -11,6 +11,9 @@ type ColorResponse = {
     g?: number;
     b?: number;
   };
+  hsl?: {
+    h?: number;
+  };
 };
 
 export type ColorCacheEntry = {
@@ -21,17 +24,54 @@ export type ColorCacheEntry = {
   r: number;
   g: number;
   b: number;
+  //  We should sort by hue so colors appear in ROYGBIV order
+  h: number;
 };
 
-const SLCache: Record<string, ColorCacheEntry> = {};
+const SLCache: Record<string, ColorCacheEntry[]> = {};
+const HSLCache: Record<string, ColorCacheEntry> = {};
 
 const getColorsBySL = async (
   saturation: number,
-  luminance: number
-): Promise<ColorCacheEntry> => {
+  luminance: number,
+  pushToLoadingColors: (newColors: ColorCacheEntry) => void
+): Promise<ColorCacheEntry[]> => {
   const cacheKey = `S:${saturation}-L:${luminance}`;
   if (!SLCache[cacheKey]) {
-    const result = await fetchByHSL(200, saturation, luminance);
+    const loadedColors: ColorCacheEntry[] = [];
+
+    for (let hue = 0; hue < 360; hue += 10) {
+      try {
+        const hsl = await getColorByHSL(hue, saturation, luminance);
+
+        if (
+          loadedColors.length <= 0 ||
+          hsl.closestNamedHex !==
+            loadedColors[loadedColors.length - 1]?.closestNamedHex
+        ) {
+          console.log("updating loaded colors");
+          loadedColors.push(hsl);
+          pushToLoadingColors(hsl);
+        }
+      } catch (error) {
+        throw new Error("Error fetching pallete");
+      }
+    }
+    SLCache[cacheKey] = loadedColors;
+  }
+
+  console.log("returning cache", SLCache[cacheKey]);
+  return SLCache[cacheKey];
+};
+
+const getColorByHSL = async (
+  h: number,
+  s: number,
+  l: number
+): Promise<ColorCacheEntry> => {
+  const cacheKey = `H:${h}-S:${s}-L:${l}`;
+  if (!HSLCache[cacheKey]) {
+    const result = await fetchByHSL(h, s, l);
 
     let closestNamedHex: string | undefined;
     let distance: number | undefined;
@@ -40,6 +80,7 @@ const getColorsBySL = async (
     let r: number | undefined;
     let g: number | undefined;
     let b: number | undefined;
+    let hue: number | undefined;
 
     if (result) {
       closestNamedHex = `${result?.name?.closest_named_hex}`;
@@ -49,6 +90,7 @@ const getColorsBySL = async (
       r = result?.rgb?.r;
       g = result?.rgb?.g;
       b = result?.rgb?.b;
+      hue = result?.hsl?.h;
     }
 
     if (
@@ -59,12 +101,14 @@ const getColorsBySL = async (
       !value ||
       !r ||
       !g ||
-      !b
+      !b ||
+      !(hue || hue === 0)
     ) {
+      console.log("failed to retrieve color");
       throw new Error("failed to retrieve color");
     }
 
-    SLCache[cacheKey] = {
+    HSLCache[cacheKey] = {
       closestNamedHex,
       distance,
       exactMatchName,
@@ -72,9 +116,10 @@ const getColorsBySL = async (
       r,
       g,
       b,
+      h: hue,
     };
   }
-  return SLCache[cacheKey];
+  return HSLCache[cacheKey];
 };
 
 const fetchByHSL = async (

@@ -1,5 +1,5 @@
 <template>
-  <div className="h-fit p-4 flex flex-col w-full max-w-56">
+  <div className="h-fit px-4 pt-4 pb-2 flex flex-col w-full max-w-56">
     <form @submit.prevent="onSubmit">
       <label className="flex justify-between flex-wrap">
         <span>Saturation:</span>
@@ -46,6 +46,10 @@
       </button>
     </form>
   </div>
+  <span v-if="isLoading" className="pl-4 pb-4 text-gray-400">Loading...</span>
+  <span v-if="hasError" className="pl-4 pb-4 text-red-600"
+    >*Failed to Load New Pallete</span
+  >
 </template>
 
 <script lang="ts">
@@ -71,6 +75,7 @@ export default defineComponent({
     saturation: { type: Number, required: true },
     luminance: { type: Number, required: true },
     isLoading: { type: Boolean, required: true },
+    hasError: { type: Boolean, required: true },
     changeSaturation: { type: Function, required: true },
     changeLuminance: { type: Function, required: true },
     getColors: { type: Function, required: true },

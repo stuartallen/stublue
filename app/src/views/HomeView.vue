@@ -7,16 +7,22 @@
       :saturation="saturation"
       :luminance="luminance"
       :isLoading="isLoading"
+      :hasError="hasError"
       :changeSaturation="changeSaturation"
       :changeLuminance="changeLuminance"
       :getColors="getColors"
     />
-    <ColorGallery
+    <ExistingColorsGallery
       :saturation="displayedSaturation"
       :luminance="displayedLuminance"
       :isLoading="isLoading"
-      :hasError="hasError"
-      :colors="colors"
+      :colors="displayedColors"
+    />
+    <LoadingColorsGallery
+      :saturation="saturation"
+      :luminance="luminance"
+      :isLoading="isLoading"
+      :colors="loadingColors"
     />
   </div>
 </template>
@@ -24,6 +30,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import SLSelector from "@/components/SLSelector.vue";
+import LoadingColorsGallery from "@/components/LoadingColorsGallery.vue";
+import ExistingColorsGallery from "@/components/ExistingColorsGallery.vue";
 import ColorGallery from "@/components/ColorGallery.vue";
 import getColorsBySL from "@/utils/colors";
 import type { ColorCacheEntry } from "@/utils/colors";
@@ -39,7 +47,8 @@ export default defineComponent({
     luminance: number;
     displayedSaturation: number;
     displayedLuminance: number;
-    colors: ColorCacheEntry[];
+    loadingColors: ColorCacheEntry[];
+    displayedColors: ColorCacheEntry[];
     isLoading: boolean;
     hasError: boolean;
   } {
@@ -50,7 +59,10 @@ export default defineComponent({
       //  The saturation and luminence currently displayed in the gallery
       displayedSaturation: 50,
       displayedLuminance: 50,
-      colors: [],
+      //  Live colors as the new color pallete is populating
+      loadingColors: [],
+      //  The complete set of colors from the last request
+      displayedColors: [],
       isLoading: false,
       hasError: false,
     };
@@ -62,29 +74,19 @@ export default defineComponent({
     changeLuminance(newVal: number) {
       this.luminance = newVal;
     },
+    pushToLoadingColors(newColor: ColorCacheEntry) {
+      this.loadingColors.push(newColor);
+    },
     getColors() {
       this.isLoading = true;
       this.hasError = false;
-      getColorsBySL(this.saturation, this.luminance)
-        .then((result) => {
+      getColorsBySL(this.saturation, this.luminance, this.pushToLoadingColors)
+        .then((colors) => {
           this.isLoading = false;
+          this.loadingColors = [];
           this.displayedSaturation = this.saturation;
           this.displayedLuminance = this.luminance;
-          //  TODO: getColorsBySL should return an array of colors
-          this.colors = [
-            result,
-            result,
-            result,
-            result,
-            result,
-            result,
-            result,
-            result,
-            result,
-            result,
-            result,
-            result,
-          ];
+          this.displayedColors = colors;
         })
         .catch(() => {
           this.isLoading = false;
@@ -94,7 +96,8 @@ export default defineComponent({
   },
   components: {
     SLSelector,
-    ColorGallery,
+    LoadingColorsGallery,
+    ExistingColorsGallery,
   },
 });
 </script>

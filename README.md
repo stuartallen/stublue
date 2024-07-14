@@ -30,3 +30,7 @@ Start the development server on http://localhost:3000
 ```bash
 npm run dev
 ```
+
+# Attributions:
+
+- Color Wheel favicon is from [Freepik on FlatIcon](https://www.flaticon.com/free-icon/color-wheel_2919733)
