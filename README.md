@@ -7,7 +7,7 @@ Stublue is a color scheme generator website where a user can select schemes base
 I started from krskibin's [Nuxt project template](https://github.com/krskibin/nuxt3-template/tree/dev).
 
 - Vue (Frontend framework)
-- Nuxt (Making this easy to deploy and state/api management in addition to many other things)
+- Vite (Dev framework for Vue)
 - Typescript (Stronger typing than javascript)
 - ESLint (Avoiding committing garbage)
 - Prettier (Avoid committing ugly non-garbage)
@@ -20,17 +20,9 @@ I started from krskibin's [Nuxt project template](https://github.com/krskibin/nu
 
 # Quick Start
 
-Make sure to install the dependencies:
-
 ```bash
-# yarn
-yarn install
-
 # npm
 npm install
-
-# pnpm
-pnpm install --shamefully-hoist
 ```
 
 ## Development Server
@@ -40,19 +32,3 @@ Start the development server on http://localhost:3000
 ```bash
 npm run dev
 ```
-
-## Production
-
-Build the application for production:
-
-```bash
-npm run build
-```
-
-Locally preview production build:
-
-```bash
-npm run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
