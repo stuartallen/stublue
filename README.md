@@ -4,8 +4,6 @@ Stublue is a color scheme generator website where a user can select schemes base
 
 # Tech Stack
 
-I started from krskibin's [Nuxt project template](https://github.com/krskibin/nuxt3-template/tree/dev).
-
 - Vue (Frontend framework)
 - Vite (Dev framework for Vue)
 - Typescript (Stronger typing than javascript)
