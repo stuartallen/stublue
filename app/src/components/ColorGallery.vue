@@ -1,5 +1,5 @@
 <template>
-  <div className="w-full flex flex-grow flex-col">
+  <div className="w-full flex flex-grow flex-col overflow-hidden">
     <div v-if="hasError">
       <span className="pl-4 text-red-600">*Failed to Load New Pallete</span>
     </div>
