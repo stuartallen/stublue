@@ -7,6 +7,7 @@ Stublue is a color scheme generator website where a user can select schemes base
 - Vue (Frontend framework)
 - Vite (Local development for Vue)
 - Typescript (Stronger typing than javascript)
+- Tailwind (Make styling simple)
 - ESLint (Avoid committing bad patterns)
 - Prettier (Make the code look nice)
 
