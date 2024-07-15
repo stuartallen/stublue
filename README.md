@@ -19,6 +19,8 @@ npm install
 npm run serve
 ```
 
+then navigate to [localhost:8080](http://localhost:8080/)
+
 # Important considerations
 
 - How efficiently can the distinct names be determined? Can the number of API calls be reduced?
