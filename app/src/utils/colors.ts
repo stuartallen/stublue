@@ -125,20 +125,15 @@ const fetchByHSL = async (
   s: number,
   l: number
 ): Promise<ColorResponse | false> => {
-  if (process.env.VUE_APP_COLOR_ENDPOINT) {
-    const response = await fetch(
-      `https://www.thecolorapi.com/id?hsl=(${h},${s},${l})`
-    );
-    if (response.status !== 200) {
-      console.error("Failed to fetch color", response);
-      return false;
-    }
-    const result = await response.json();
-    return result;
+  const response = await fetch(
+    `https://www.thecolorapi.com/id?hsl=(${h},${s},${l})`
+  );
+  if (response.status !== 200) {
+    console.error("Failed to fetch color", response);
+    return false;
   }
-
-  console.error("No endpoint configured");
-  return false;
+  const result = await response.json();
+  return result;
 };
 
 //  Perform a binary search to find where a color name transitions for a given name
