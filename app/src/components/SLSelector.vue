@@ -1,12 +1,14 @@
 <template>
   <div className="h-fit px-4 pt-4 pb-2 flex flex-col w-full max-w-56">
     <form @submit.prevent="onSubmit">
-      <label className="flex justify-between flex-wrap">
+      <label for="saturation" className="flex justify-between flex-wrap">
         <span>Saturation:</span>
         <div>
           <!-- On key down prop prevents all non-integer input, I added Enter, up/down arrows and Tab so the form can be submitted, manipulated and tabigated accessibly
          courtesy of:  https://stackoverflow.com/questions/31706611/why-does-the-html-input-with-type-number-allow-the-letter-e-to-be-entered-in -->
           <input
+            id="saturation"
+            name="saturation"
             className="mb-2 border border-gray-300 rounded-lg text-right"
             type="number"
             v-model.number="inputSaturation"
@@ -19,10 +21,12 @@
           %
         </div>
       </label>
-      <label className="flex justify-between flex-wrap">
+      <label for="luminance" className="flex justify-between flex-wrap">
         <span>Luminance:</span>
         <div>
           <input
+            id="luminance"
+            name="luminance"
             className="border border-gray-300 rounded-lg text-right"
             type="number"
             v-model.number="inputLuminance"
@@ -46,7 +50,6 @@
       </button>
     </form>
   </div>
-  <span v-if="isLoading" className="pl-4 pb-4 text-gray-400">Loading...</span>
   <span v-if="hasError" className="pl-4 pb-4 text-red-600"
     >*Failed to Load New Pallete</span
   >

@@ -1,9 +1,13 @@
 <template>
   <div
     v-if="display"
-    :style="{ minHeight: isUsingLoadingStyle ? '4rem' : 'auto' }"
-    className="w-full flex flex-grow flex-col overflow-hidden"
+    :style="{ maxHeight: isUsingLoadingStyle ? '16rem' : undefined }"
+    className="relative w-full flex flex-grow flex-col overflow-hidden"
   >
+    <div
+      v-if="isUsingLoadingStyle"
+      className="absolute w-full h-full bg-slate-950 opacity-25 z-10 pointer-events-none"
+    ></div>
     <div
       className="text-3xl text-gray-400 pl-4 mb-2"
       :style="{ textDecoration: isUsingLoadingStyle ? 'line-through' : '' }"
@@ -15,6 +19,14 @@
       </h2>
     </div>
     <hr />
+    <button
+      v-if="colors.length > 0"
+      @click="copyAllColorsProperties"
+      className="w-fit h-fit px-4 py-2 mx-2 my-2 bg-blue-400 text-white rounded-lg"
+      aria-label="Copy Properties from All Colors to Clipboard"
+    >
+      Copy All
+    </button>
     <div
       className="flex flex-wrap justify-center overflow-x-hidden overflow-y-auto pb-8"
     >
@@ -57,7 +69,7 @@ export default defineComponent({
     saturation: { type: Number, required: true },
     luminance: { type: Number, required: true },
     isUsingLoadingStyle: { type: Boolean, required: true },
-    colors: { type: Array as () => ColorCacheEntry[], required: false },
+    colors: { type: Array as () => ColorCacheEntry[], required: true },
   },
   methods: {
     async copyColorProperties(color: ColorCacheEntry) {
@@ -66,6 +78,20 @@ export default defineComponent({
         await navigator.clipboard.writeText(colorProperties);
       } catch (err) {
         console.error("Failed to copy color properties", err);
+      }
+    },
+    async copyAllColorsProperties() {
+      const colorProperties = this.colors
+        .map(
+          (color) =>
+            `${color.value}, ${color.closestNamedHex}, (${color.r}, ${color.g}, ${color.b})`
+        )
+        .join("\n");
+
+      try {
+        await navigator.clipboard.writeText(colorProperties);
+      } catch (err) {
+        console.error("Failed to copy all color properties", err);
       }
     },
   },

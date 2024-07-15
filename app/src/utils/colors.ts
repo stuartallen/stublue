@@ -24,14 +24,15 @@ export type ColorCacheEntry = {
   r: number;
   g: number;
   b: number;
-  //  We should sort by hue so colors appear in ROYGBIV order
+  //  We should sort by hue so colors appear in ROY G BIV order
   h: number;
 };
 
 const SLCache: Record<string, ColorCacheEntry[]> = {};
 const HSLCache: Record<string, ColorCacheEntry> = {};
 
-const getColorsBySL = async (
+// Not used in final implementation, but worth keeping around for reference
+const bruteForceGetColorsBySL = async (
   saturation: number,
   luminance: number,
   pushToLoadingColors: (newColors: ColorCacheEntry) => void
@@ -40,7 +41,7 @@ const getColorsBySL = async (
   if (!SLCache[cacheKey]) {
     const loadedColors: ColorCacheEntry[] = [];
 
-    for (let hue = 0; hue < 360; hue += 10) {
+    for (let hue = 0; hue < 360; hue += 1) {
       try {
         const hsl = await getColorByHSL(hue, saturation, luminance);
 
@@ -49,18 +50,16 @@ const getColorsBySL = async (
           hsl.closestNamedHex !==
             loadedColors[loadedColors.length - 1]?.closestNamedHex
         ) {
-          console.log("updating loaded colors");
           loadedColors.push(hsl);
           pushToLoadingColors(hsl);
         }
       } catch (error) {
-        throw new Error("Error fetching pallete");
+        throw new Error("Error fetching pallette");
       }
     }
     SLCache[cacheKey] = loadedColors;
   }
 
-  console.log("returning cache", SLCache[cacheKey]);
   return SLCache[cacheKey];
 };
 
@@ -96,15 +95,14 @@ const getColorByHSL = async (
     if (
       !result ||
       !closestNamedHex ||
-      !distance ||
+      !(distance || distance === 0) ||
       !(exactMatchName === true || exactMatchName === false) ||
       !value ||
-      !r ||
-      !g ||
-      !b ||
+      !(r || r === 0) ||
+      !(g || g === 0) ||
+      !(b || b === 0) ||
       !(hue || hue === 0)
     ) {
-      console.log("failed to retrieve color");
       throw new Error("failed to retrieve color");
     }
 
@@ -132,6 +130,7 @@ const fetchByHSL = async (
       `https://www.thecolorapi.com/id?hsl=(${h},${s},${l})`
     );
     if (response.status !== 200) {
+      console.error("Failed to fetch color", response);
       return false;
     }
     const result = await response.json();
@@ -142,4 +141,86 @@ const fetchByHSL = async (
   return false;
 };
 
+//  Perform a binary search to find where a color name transitions for a given name
+const getColorTransition = async (
+  colorName: string,
+  saturation: number,
+  luminance: number,
+  hMin: number,
+  hMax: number
+): Promise<(ColorCacheEntry & { hueBoundary: number }) | null> => {
+  while (hMin <= hMax) {
+    const hMid = Math.floor((hMin + hMax) / 2);
+    const colorEntry = await getColorByHSL(hMid, saturation, luminance);
+
+    // if the color name matches, we have not gone far enough
+    if (colorEntry.value === colorName) {
+      hMin = hMid + 1;
+      //  If the color name does not match
+    } else {
+      //  If the hue one less than the midpoint matches, we have found the boundary
+      const oneHueLessEntry = await getColorByHSL(
+        hMid - 1,
+        saturation,
+        luminance
+      );
+      if (oneHueLessEntry.value === colorName) {
+        return { hueBoundary: hMid, ...colorEntry };
+      }
+      //  Otherwise, we have gone too far
+      hMax = hMid - 1;
+    }
+  }
+
+  return null;
+};
+
+//  Safe guard to prevent infinite while loop
+const MAX_ITERATIONS = 360;
+
+const getColorsBySL = async (
+  saturation: number,
+  luminance: number,
+  pushToLoadingColors: (newColors: ColorCacheEntry) => void
+): Promise<ColorCacheEntry[]> => {
+  const cacheKey = `S:${saturation}-L:${luminance}`;
+  if (!SLCache[cacheKey]) {
+    const loadedColors: ColorCacheEntry[] = [];
+    const hueBoundaries: (ColorCacheEntry & { hueBoundary: number })[] = [];
+
+    const initialColor = await getColorByHSL(0, saturation, luminance);
+    loadedColors.push(initialColor);
+    hueBoundaries.push({ hueBoundary: 0, ...initialColor });
+    let i = 0;
+
+    //  Find the hue boundaries for each color
+    while (
+      i === 0 ||
+      (i < MAX_ITERATIONS &&
+        hueBoundaries[hueBoundaries.length - 1].value !== initialColor.value)
+    ) {
+      i++;
+      const lastBoundary = hueBoundaries[hueBoundaries.length - 1];
+      const nextBoundary = await getColorTransition(
+        lastBoundary.value,
+        saturation,
+        luminance,
+        lastBoundary.hueBoundary + 1,
+        359
+      );
+      if (nextBoundary) {
+        hueBoundaries.push(nextBoundary);
+        if (nextBoundary.value !== initialColor.value) {
+          loadedColors.push(nextBoundary);
+          pushToLoadingColors(nextBoundary);
+        }
+      }
+    }
+
+    SLCache[cacheKey] = loadedColors;
+  }
+  return SLCache[cacheKey];
+};
+
 export default getColorsBySL;
+export { bruteForceGetColorsBySL };

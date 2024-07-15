@@ -12,17 +12,17 @@
       :changeLuminance="changeLuminance"
       :getColors="getColors"
     />
-    <ExistingColorsGallery
-      :saturation="displayedSaturation"
-      :luminance="displayedLuminance"
-      :isLoading="isLoading"
-      :colors="displayedColors"
-    />
     <LoadingColorsGallery
       :saturation="saturation"
       :luminance="luminance"
       :isLoading="isLoading"
       :colors="loadingColors"
+    />
+    <ExistingColorsGallery
+      :saturation="displayedSaturation"
+      :luminance="displayedLuminance"
+      :isLoading="isLoading"
+      :colors="displayedColors"
     />
   </div>
 </template>
@@ -32,7 +32,6 @@ import { defineComponent } from "vue";
 import SLSelector from "@/components/SLSelector.vue";
 import LoadingColorsGallery from "@/components/LoadingColorsGallery.vue";
 import ExistingColorsGallery from "@/components/ExistingColorsGallery.vue";
-import ColorGallery from "@/components/ColorGallery.vue";
 import getColorsBySL from "@/utils/colors";
 import type { ColorCacheEntry } from "@/utils/colors";
 
@@ -88,7 +87,8 @@ export default defineComponent({
           this.displayedLuminance = this.luminance;
           this.displayedColors = colors;
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error("Failed to get colors", error);
           this.isLoading = false;
           this.hasError = true;
         });
